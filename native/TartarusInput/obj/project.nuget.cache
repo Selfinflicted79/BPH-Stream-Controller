@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "6KcPyKe3bDY=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\remym\\.cursor\\projects\\stream-controller\\native\\TartarusInput\\TartarusInput.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\remym\\AppData\\Local\\Temp\\cursor-sandbox-cache\\4ad01b6b23effbda58e1755e1898b7cb\\nuget\\microsoft.net.illink.tasks\\8.0.6\\microsoft.net.illink.tasks.8.0.6.nupkg.sha512",
+    "C:\\Users\\remym\\AppData\\Local\\Temp\\cursor-sandbox-cache\\4ad01b6b23effbda58e1755e1898b7cb\\nuget\\microsoft.netcore.app.runtime.win-x64\\8.0.6\\microsoft.netcore.app.runtime.win-x64.8.0.6.nupkg.sha512",
+    "C:\\Users\\remym\\AppData\\Local\\Temp\\cursor-sandbox-cache\\4ad01b6b23effbda58e1755e1898b7cb\\nuget\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.6\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.6.nupkg.sha512",
+    "C:\\Users\\remym\\AppData\\Local\\Temp\\cursor-sandbox-cache\\4ad01b6b23effbda58e1755e1898b7cb\\nuget\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.6\\microsoft.aspnetcore.app.runtime.win-x64.8.0.6.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+release/
+native/bin/
+tmp-fader-frames/
+*.log
+.DS_Store
+Thumbs.db
+5thversion.png
+BPHStreamControllerV0.5.4.png
+UI_mockup_concept_art_for_a_desktop_app_called_BPH.jpg

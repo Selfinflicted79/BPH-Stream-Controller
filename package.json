@@ -1,0 +1,80 @@
+{
+  "name": "bph-stream-controller",
+  "version": "0.5.4",
+  "private": true,
+  "description": "BPH Stream Controller — Akai MPD226 MIDI control surface for OBS",
+  "author": "Badly Played Hub",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 4320",
+    "dev:electron": "concurrently -k \"vite --port 4320\" \"wait-on http://127.0.0.1:4320 && electron .\"",
+    "build": "tsc --noEmit && vite build",
+    "build:input": "dotnet publish native/TartarusInput/TartarusInput.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o native/bin",
+    "postinstall": "electron-rebuild -f -w midi,koffi || echo skip-rebuild",
+    "electron": "electron .",
+    "dist:win": "npm run build && electron-builder --win portable --x64",
+    "preview": "vite preview --port 4320"
+  },
+  "build": {
+    "appId": "com.badlyplayedhub.streamcontroller",
+    "productName": "BPH Stream Controller",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "electron/splash",
+        "to": "splash"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "BPH-Stream-Controller-${version}-portable.${ext}"
+    }
+  },
+  "dependencies": {
+    "koffi": "^3.3.7",
+    "midi": "^2.0.0",
+    "obs-websocket-js": "^5.0.6"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.1",
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.0",
+    "concurrently": "^9.2.1",
+    "electron": "^39.8.10",
+    "electron-builder": "^26.0.12",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite": "^7.1.12",
+    "wait-on": "^9.0.1"
+  },
+  "allowScripts": {
+    "electron@39.8.10": true,
+    "node-hid@3.4.0": true,
+    "esbuild@0.28.2": true,
+    "electron-winstaller@5.4.0": true,
+    "midi@2.0.0": true,
+    "koffi@3.3.7": true
+  }
+}
