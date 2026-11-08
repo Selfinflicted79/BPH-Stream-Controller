@@ -2,6 +2,7 @@ node_modules/
 dist/
 release/
 native/bin/
+native/TartarusInput/obj/
 tmp-fader-frames/
 *.log
 .DS_Store
