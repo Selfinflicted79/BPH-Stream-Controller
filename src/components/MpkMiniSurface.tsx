@@ -47,6 +47,12 @@ export function MpkMiniSurface({
     if (b.action.type === "macro") {
       return `macro: ${b.action.macroChord || "?"}`;
     }
+    if (b.action.type === "source" && b.action.target) {
+      const vis = b.action.sourceAction || "toggle";
+      return b.action.sceneName
+        ? `${vis} ${b.action.sceneName} / ${b.action.target}`
+        : `${vis} ${b.action.target}`;
+    }
     if (b.action.target) return `${b.action.type}: ${b.action.target}`;
     return b.action.type;
   };

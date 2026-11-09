@@ -1,6 +1,6 @@
 {
   "name": "bph-stream-controller",
-  "version": "0.5.4",
+  "version": "0.5.6",
   "private": true,
   "description": "BPH Stream Controller — Akai MPD226 MIDI control surface for OBS",
   "author": "Badly Played Hub",

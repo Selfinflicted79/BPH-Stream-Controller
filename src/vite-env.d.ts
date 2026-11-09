@@ -6,6 +6,7 @@ import type {
   MidiMessage,
   ActionResult,
   MidiDevice,
+  ObsSceneItem,
 } from "./lib/types";
 
 export interface BphDesktopApi {
@@ -39,6 +40,12 @@ export interface BphDesktopApi {
   obsInputs: () => Promise<{
     ok: boolean;
     inputs: { name: string; kind: string }[];
+    error?: string;
+  }>;
+  obsSceneItems: () => Promise<{
+    ok: boolean;
+    items: ObsSceneItem[];
+    currentProgramSceneName?: string | null;
     error?: string;
   }>;
   midiStatus: () => Promise<MidiStatus>;

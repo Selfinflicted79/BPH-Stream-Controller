@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { MidiBinding, ActionType } from "@/lib/types";
+import type { MidiBinding, ActionType, ObsSceneItem } from "@/lib/types";
 import { formatMidiSig } from "@/lib/desktop";
 import { PAD_PALETTE, nearestPadColorIndex } from "@/lib/pad-palette";
+import {
+  TRANSPORT_GLYPHS,
+  LIT_HUES,
+  defaultLitHue,
+  defaultTransportGlyph,
+  type LitHue,
+} from "@/lib/transport-glyphs";
 
 /** Map a KeyboardEvent to our macro token (window-focused only — no hooks). */
 function eventToMacroToken(e: KeyboardEvent): string | null {
@@ -33,6 +40,7 @@ interface Props {
   scenes: string[];
   mediaInputs: string[];
   audioInputs: string[];
+  sceneItems: ObsSceneItem[];
   learning: boolean;
   hwOutName?: string | null;
   showPadLeds?: boolean;
@@ -67,6 +75,7 @@ export function AssignPanel({
   scenes,
   mediaInputs,
   audioInputs,
+  sceneItems,
   learning,
   hwOutName,
   showPadLeds = true,
@@ -145,18 +154,26 @@ export function AssignPanel({
       ? binding.padColorIndex
       : nearestPadColorIndex(binding.color);
   const isPad = binding.group === "pad";
+  const isTransport = binding.group === "transport";
   const showPressMode =
     binding.group === "switch" ||
     binding.group === "pad" ||
     binding.group === "transport" ||
     binding.group === "mode";
+  const activeGlyph = binding.uiGlyph || defaultTransportGlyph(binding.id);
+  const activeLit = (binding.litHue || defaultLitHue(binding.id)) as LitHue;
 
   return (
     <aside className="digital-console">
       <div className="digital-console__title">ASSIGN</div>
 
       <DigiScreen label="CONTROL" accent="magenta">
-        <div className="digi-readout digi-readout--lg">{binding.label}</div>
+        <div className="digi-readout digi-readout--lg">
+          {isTransport ? (
+            <span className="digi-glyph-preview">{activeGlyph}</span>
+          ) : null}{" "}
+          {binding.label}
+        </div>
         <input
           className="digi-field"
           value={binding.label}
@@ -165,6 +182,47 @@ export function AssignPanel({
           aria-label="Name"
         />
       </DigiScreen>
+
+      {isTransport && (
+        <DigiScreen label="FACE · SYMBOL & LIGHT" accent="amber">
+          <span className="digi-meta">Symbol</span>
+          <div className="digi-glyph-grid">
+            {TRANSPORT_GLYPHS.map((g) => (
+              <button
+                key={g}
+                type="button"
+                className={`digi-glyph ${activeGlyph === g ? "active" : ""}`}
+                onClick={() => set({ uiGlyph: g })}
+                title={g}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+          <span className="digi-meta" style={{ marginTop: "0.45rem" }}>
+            Light when active
+          </span>
+          <div className="digi-btn-row">
+            {LIT_HUES.map((h) => (
+              <button
+                key={h.id}
+                type="button"
+                className={`digi-btn ${activeLit === h.id ? "digi-btn--primary" : ""}`}
+                style={{
+                  borderColor: activeLit === h.id ? h.swatch : undefined,
+                  color: activeLit === h.id ? h.swatch : undefined,
+                }}
+                onClick={() => set({ litHue: h.id })}
+              >
+                {h.label}
+              </button>
+            ))}
+          </div>
+          <p className="digi-copy" style={{ fontSize: "0.72rem" }}>
+            Defaults: Play/Stop/Pause green · Rec red. Use Toggle so the light stays on while streaming / overlay is up.
+          </p>
+        </DigiScreen>
+      )}
 
       {isPad && showPadLeds && (
         <DigiScreen label="PAD LED · HARDWARE" accent="cyan">
@@ -227,14 +285,19 @@ export function AssignPanel({
           value={binding.action.type}
           onChange={(e) => {
             const type = e.target.value as ActionType;
+            const firstItem = sceneItems[0];
             setAction({
               type,
               target:
                 type === "scene"
                   ? scenes[0] || ""
-                  : type === "media" || type === "volume"
-                    ? (type === "media" ? mediaInputs[0] : audioInputs[0]) || ""
-                    : "",
+                  : type === "source"
+                    ? firstItem?.sourceName || ""
+                    : type === "media" || type === "volume"
+                      ? (type === "media" ? mediaInputs[0] : audioInputs[0]) || ""
+                      : "",
+              sceneName: type === "source" ? firstItem?.sceneName || "" : "",
+              sourceAction: type === "source" ? "toggle" : binding.action.sourceAction,
               macroChord:
                 type === "macro"
                   ? binding.action.macroChord || "lalt+1"
@@ -248,6 +311,7 @@ export function AssignPanel({
         >
           <option value="none">None</option>
           <option value="scene">OBS — Switch scene</option>
+          <option value="source">OBS — Source / overlay on-off</option>
           <option value="media">OBS — Media</option>
           <option value="record">OBS — Recording</option>
           <option value="stream">OBS — Streaming</option>
@@ -349,6 +413,47 @@ export function AssignPanel({
               </option>
             ))}
           </select>
+        )}
+
+        {binding.action.type === "source" && (
+          <>
+            <select
+              className="digi-field mt-2"
+              value={`${binding.action.sceneName || ""}|||${binding.action.target || ""}`}
+              onChange={(e) => {
+                const [sceneName = "", sourceName = ""] = e.target.value.split("|||");
+                setAction({ target: sourceName, sceneName });
+              }}
+            >
+              {!sceneItems.length && (
+                <option value="|||">Connect OBS / refresh</option>
+              )}
+              {sceneItems.map((item) => (
+                <option
+                  key={`${item.sceneName}::${item.sourceName}::${item.sceneItemId}`}
+                  value={`${item.sceneName}|||${item.sourceName}`}
+                >
+                  {item.label}
+                </option>
+              ))}
+            </select>
+            <select
+              className="digi-field mt-2"
+              value={binding.action.sourceAction || "toggle"}
+              onChange={(e) =>
+                setAction({
+                  sourceAction: e.target.value as "toggle" | "show" | "hide",
+                })
+              }
+            >
+              <option value="toggle">Toggle show / hide</option>
+              <option value="show">Show (eye on)</option>
+              <option value="hide">Hide (eye off)</option>
+            </select>
+            <p className="digi-copy" style={{ fontSize: "0.72rem" }}>
+              Pick Scene / Source — same name in different scenes are separate. Refresh after adding overlays in OBS.
+            </p>
+          </>
         )}
 
         {binding.action.type === "media" && (

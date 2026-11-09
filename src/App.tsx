@@ -6,7 +6,7 @@ import { ObsSettings } from "@/components/ObsSettings";
 import { desktop } from "@/lib/desktop";
 import { checkControllerUpdate } from "@/lib/update-check";
 import { SURFACE_FALLBACK, type SurfaceInfo } from "@/lib/devices";
-import type { MidiBinding, MidiStatus, Profile } from "@/lib/types";
+import type { MidiBinding, MidiStatus, ObsSceneItem, Profile } from "@/lib/types";
 
 const emptyMidi: MidiStatus = {
   available: false,
@@ -28,6 +28,7 @@ export default function App() {
   const [scenes, setScenes] = useState<string[]>([]);
   const [mediaInputs, setMediaInputs] = useState<string[]>([]);
   const [audioInputs, setAudioInputs] = useState<string[]>([]);
+  const [sceneItems, setSceneItems] = useState<ObsSceneItem[]>([]);
   const [obsConnected, setObsConnected] = useState(false);
   const [obsWaiting, setObsWaiting] = useState(false);
   const [obsError, setObsError] = useState<string | null>(null);
@@ -62,14 +63,16 @@ export default function App() {
   };
 
   const refreshObsLists = useCallback(async () => {
-    const [sc, md, inp] = await Promise.all([
+    const [sc, md, inp, items] = await Promise.all([
       api.obsScenes(),
       api.obsMedia(),
       api.obsInputs(),
+      api.obsSceneItems ? api.obsSceneItems() : Promise.resolve({ ok: false as const, items: [] }),
     ]);
     if (sc.ok) setScenes(sc.scenes);
     if (md.ok) setMediaInputs(md.inputs);
     if (inp.ok) setAudioInputs(inp.inputs.map((i) => i.name));
+    if (items.ok) setSceneItems(items.items);
   }, [api]);
 
   const refreshMidi = useCallback(async () => {
@@ -454,6 +457,7 @@ export default function App() {
               scenes={scenes}
               mediaInputs={mediaInputs}
               audioInputs={audioInputs}
+              sceneItems={sceneItems}
               learning={learning}
               hwOutName={midi.outName}
               showPadLeds={!!surfaceMeta.hasPadLeds}

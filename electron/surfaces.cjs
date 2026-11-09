@@ -131,10 +131,38 @@ function makeMpdBindings() {
   }));
 
   const transport = [
-    { id: "tr-play", label: "Play", color: "#5fd36a", group: "transport" },
-    { id: "tr-stop", label: "Stop", color: "#8b93a8", group: "transport" },
-    { id: "tr-rec", label: "Rec", color: "#e24b3b", group: "transport" },
-    { id: "tr-pause", label: "Pause", color: "#f0a83a", group: "transport" },
+    {
+      id: "tr-stop",
+      label: "Stop",
+      color: "#8b93a8",
+      group: "transport",
+      uiGlyph: "■",
+      litHue: "green",
+    },
+    {
+      id: "tr-play",
+      label: "Play",
+      color: "#5fd36a",
+      group: "transport",
+      uiGlyph: "▶",
+      litHue: "green",
+    },
+    {
+      id: "tr-rec",
+      label: "Rec",
+      color: "#e24b3b",
+      group: "transport",
+      uiGlyph: "●",
+      litHue: "red",
+    },
+    {
+      id: "tr-pause",
+      label: "Pause",
+      color: "#f0a83a",
+      group: "transport",
+      uiGlyph: "❚❚",
+      litHue: "green",
+    },
   ].map((t) => ({ ...t, midi: null, action: defaultAction() }));
 
   return [...pads, ...knobs, ...faders, ...switches, ...modes, ...transport];

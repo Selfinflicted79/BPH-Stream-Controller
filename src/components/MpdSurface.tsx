@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { MidiBinding } from "@/lib/types";
+import { defaultLitHue, defaultTransportGlyph } from "@/lib/transport-glyphs";
 
 interface Props {
   bindings: MidiBinding[];
@@ -51,6 +52,12 @@ export function MpdSurface({
     if (!b || b.action.type === "none") return "unassigned";
     if (b.action.type === "macro") {
       return `macro: ${b.action.macroChord || b.action.target || "?"}`;
+    }
+    if (b.action.type === "source" && b.action.target) {
+      const vis = b.action.sourceAction || "toggle";
+      return b.action.sceneName
+        ? `${vis} ${b.action.sceneName} / ${b.action.target}`
+        : `${vis} ${b.action.target}`;
     }
     if (b.action.target) return `${b.action.type}: ${b.action.target}`;
     return b.action.type;
@@ -273,25 +280,21 @@ export function MpdSurface({
             </div>
 
             <div className="mpd-transport">
-              {(
-                [
-                  { id: "tr-stop", icon: "■", cls: "" },
-                  { id: "tr-play", icon: "▶", cls: "" },
-                  { id: "tr-rec", icon: "●", cls: "rec" },
-                  { id: "tr-pause", icon: "❚❚", cls: "" },
-                ] as const
-              ).map(({ id, icon, cls }) => {
+              {(["tr-stop", "tr-play", "tr-rec", "tr-pause"] as const).map((id) => {
                 const b = byId(id);
                 if (!b) return null;
+                const glyph = b.uiGlyph || defaultTransportGlyph(b.id);
+                const hue = b.litHue || defaultLitHue(b.id);
+                const lit = isLit(b.id) || firedId === b.id;
                 return (
                   <button
                     key={b.id}
                     type="button"
-                    className={`mpd-tr ${cls} ${selectedId === b.id ? "selected" : ""} ${firedId === b.id ? "fired" : ""} ${bound(b) ? "bound" : ""}`}
+                    className={`mpd-tr lit-${hue} ${selectedId === b.id ? "selected" : ""} ${lit ? "lit" : ""} ${firedId === b.id ? "fired" : ""} ${bound(b) ? "bound" : ""}`}
                     onClick={() => onSelect(b.id)}
-                    title={`${b.label} — ${actionHint(b)}`}
+                    title={`${b.label} — ${b.pressMode || "momentary"} — ${actionHint(b)}`}
                   >
-                    <span className="mpd-tr__icon">{icon}</span>
+                    <span className="mpd-tr__icon">{glyph}</span>
                     <span className="mpd-tr__name">{b.label}</span>
                   </button>
                 );

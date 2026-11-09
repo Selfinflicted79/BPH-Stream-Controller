@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld("bphDesktop", {
   obsScenes: () => ipcRenderer.invoke("bph:obs-scenes"),
   obsMedia: () => ipcRenderer.invoke("bph:obs-media"),
   obsInputs: () => ipcRenderer.invoke("bph:obs-inputs"),
+  obsSceneItems: () => ipcRenderer.invoke("bph:obs-scene-items"),
 
   midiStatus: () => ipcRenderer.invoke("bph:midi-status"),
   midiList: () => ipcRenderer.invoke("bph:midi-list"),

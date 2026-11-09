@@ -294,8 +294,14 @@ async function fireBinding(binding, msg) {
     return;
   }
 
-  // Momentary tap / OBS: fire on press only
+  // Momentary: soft-light while held (pads / switches / transport); fire on press
+  if (isReleaseMsg(msg)) {
+    setToggleLit(binding.id, false);
+    return;
+  }
   if (!isPressMsg(msg)) return;
+
+  setToggleLit(binding.id, true);
   const now = Date.now();
   const prev = lastMomentaryFire.get(binding.id) || 0;
   if (now - prev < 220) return;
@@ -660,6 +666,7 @@ function registerIpc() {
   ipcMain.handle("bph:obs-scenes", async () => obsBridge.listScenes());
   ipcMain.handle("bph:obs-media", async () => obsBridge.listMediaInputs());
   ipcMain.handle("bph:obs-inputs", async () => obsBridge.listInputs());
+  ipcMain.handle("bph:obs-scene-items", async () => obsBridge.listSceneItems());
 
   ipcMain.handle("bph:midi-status", () => midiInput.getStatus());
   ipcMain.handle("bph:midi-list", () => midiInput.listDevices());

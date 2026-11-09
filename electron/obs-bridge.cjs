@@ -317,6 +317,86 @@ async function listMediaInputs() {
   }
 }
 
+/**
+ * Scene items (sources / overlays / nested scenes) across every scene.
+ * Visibility is per-scene — same overlay name can appear in multiple scenes.
+ */
+async function listSceneItems() {
+  const ready = await ensureConnected();
+  if (!ready.ok) return { ok: false, error: ready.error || "Not connected", items: [] };
+  try {
+    const sceneList = await obs.call("GetSceneList");
+    const scenes = sceneList.scenes || [];
+    const items = [];
+    for (const scene of scenes) {
+      const sceneName = scene.sceneName;
+      if (!sceneName) continue;
+      const list = await obs.call("GetSceneItemList", { sceneName });
+      for (const item of list.sceneItems || []) {
+        if (!item?.sourceName) continue;
+        items.push({
+          sceneName,
+          sourceName: item.sourceName,
+          sceneItemId: item.sceneItemId,
+          enabled: !!item.sceneItemEnabled,
+          label: `${sceneName} / ${item.sourceName}`,
+        });
+      }
+    }
+    items.sort((a, b) => a.label.localeCompare(b.label));
+    return {
+      ok: true,
+      items,
+      currentProgramSceneName: sceneList.currentProgramSceneName || null,
+    };
+  } catch (err) {
+    return { ok: false, error: friendlyError(err), items: [] };
+  }
+}
+
+async function setSourceVisible(sceneName, sourceName, mode = "toggle") {
+  const ready = await ensureConnected();
+  if (!ready.ok) return { ok: false, error: ready.error };
+  if (!sourceName) return { ok: false, error: "Pick an OBS source / overlay" };
+
+  try {
+    let scene = sceneName;
+    if (!scene) {
+      const sc = await obs.call("GetSceneList");
+      scene = sc.currentProgramSceneName;
+    }
+    if (!scene) return { ok: false, error: "No active OBS scene" };
+
+    const idRes = await obs.call("GetSceneItemId", {
+      sceneName: scene,
+      sourceName,
+    });
+    const sceneItemId = idRes.sceneItemId;
+    let enabled;
+    if (mode === "show") enabled = true;
+    else if (mode === "hide") enabled = false;
+    else {
+      const cur = await obs.call("GetSceneItemEnabled", {
+        sceneName: scene,
+        sceneItemId,
+      });
+      enabled = !cur.sceneItemEnabled;
+    }
+    await obs.call("SetSceneItemEnabled", {
+      sceneName: scene,
+      sceneItemId,
+      sceneItemEnabled: enabled,
+    });
+    return {
+      ok: true,
+      action: "source",
+      detail: `${enabled ? "show" : "hide"} ${scene} / ${sourceName}`,
+    };
+  } catch (err) {
+    return { ok: false, error: friendlyError(err) };
+  }
+}
+
 async function setScene(sceneName) {
   const ready = await ensureConnected();
   if (!ready.ok) return { ok: false, error: ready.error };
@@ -408,6 +488,13 @@ async function runAction(action, opts = {}) {
   if (action.type === "volume") {
     return setInputVolume(action.target, opts.midiValue);
   }
+  if (action.type === "source") {
+    return setSourceVisible(
+      action.sceneName || "",
+      action.target,
+      action.sourceAction || "toggle"
+    );
+  }
   return { ok: false, error: `Unknown action type: ${action.type}` };
 }
 
@@ -420,7 +507,9 @@ module.exports = {
   listScenes,
   listInputs,
   listMediaInputs,
+  listSceneItems,
   setScene,
+  setSourceVisible,
   triggerMedia,
   toggleRecord: () => doRecord("toggle"),
   startRecord: () => doRecord("start"),

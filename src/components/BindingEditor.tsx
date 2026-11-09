@@ -1,4 +1,4 @@
-import type { MidiBinding, ActionType } from "@/lib/types";
+import type { MidiBinding, ActionType, ObsSceneItem } from "@/lib/types";
 import { formatMidiSig } from "@/lib/desktop";
 
 interface Props {
@@ -6,6 +6,7 @@ interface Props {
   scenes: string[];
   mediaInputs: string[];
   audioInputs: string[];
+  sceneItems?: ObsSceneItem[];
   learning: boolean;
   onChange: (next: MidiBinding) => void;
   onLearn: () => void;
@@ -20,6 +21,7 @@ export function BindingEditor({
   scenes,
   mediaInputs,
   audioInputs,
+  sceneItems = [],
   learning,
   onChange,
   onLearn,
@@ -120,19 +122,25 @@ export function BindingEditor({
           value={binding.action.type}
           onChange={(e) => {
             const type = e.target.value as ActionType;
+            const firstItem = sceneItems[0];
             setAction({
               type,
               target:
                 type === "scene"
                   ? scenes[0] || ""
-                  : type === "media" || type === "volume"
-                    ? (type === "media" ? mediaInputs[0] : audioInputs[0]) || ""
-                    : "",
+                  : type === "source"
+                    ? firstItem?.sourceName || ""
+                    : type === "media" || type === "volume"
+                      ? (type === "media" ? mediaInputs[0] : audioInputs[0]) || ""
+                      : "",
+              sceneName: type === "source" ? firstItem?.sceneName || "" : "",
+              sourceAction: type === "source" ? "toggle" : binding.action.sourceAction,
             });
           }}
         >
           <option value="none">None</option>
           <option value="scene">Switch scene</option>
+          <option value="source">Source / overlay on-off</option>
           <option value="media">Media play / pause / stop</option>
           <option value="record">Recording</option>
           <option value="stream">Streaming</option>
@@ -156,6 +164,48 @@ export function BindingEditor({
             ))}
           </select>
         </label>
+      )}
+
+      {binding.action.type === "source" && (
+        <>
+          <label className="block space-y-1">
+            <span className="text-sm text-[var(--muted)]">Source / overlay</span>
+            <select
+              className="field"
+              value={`${binding.action.sceneName || ""}|||${binding.action.target || ""}`}
+              onChange={(e) => {
+                const [sceneName = "", sourceName = ""] = e.target.value.split("|||");
+                setAction({ target: sourceName, sceneName });
+              }}
+            >
+              {!sceneItems.length && <option value="|||">Connect OBS / refresh</option>}
+              {sceneItems.map((item) => (
+                <option
+                  key={`${item.sceneName}::${item.sourceName}::${item.sceneItemId}`}
+                  value={`${item.sceneName}|||${item.sourceName}`}
+                >
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block space-y-1">
+            <span className="text-sm text-[var(--muted)]">Visibility</span>
+            <select
+              className="field"
+              value={binding.action.sourceAction || "toggle"}
+              onChange={(e) =>
+                setAction({
+                  sourceAction: e.target.value as "toggle" | "show" | "hide",
+                })
+              }
+            >
+              <option value="toggle">Toggle show / hide</option>
+              <option value="show">Show</option>
+              <option value="hide">Hide</option>
+            </select>
+          </label>
+        </>
       )}
 
       {binding.action.type === "media" && (

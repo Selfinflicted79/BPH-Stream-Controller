@@ -1,15 +1,27 @@
 export type ActionType =
   | "none"
   | "scene"
+  | "source"
   | "media"
   | "record"
   | "stream"
   | "volume"
   | "macro";
 
+export interface ObsSceneItem {
+  sceneName: string;
+  sourceName: string;
+  sceneItemId?: number;
+  enabled?: boolean;
+  label: string;
+}
+
 export interface ObsAction {
   type: ActionType;
   target: string;
+  /** Scene that owns the source/overlay (for type "source"). */
+  sceneName?: string;
+  sourceAction?: "toggle" | "show" | "hide";
   mediaAction?: "play" | "restart" | "stop" | "pause";
   recordAction?: "toggle" | "start" | "stop";
   streamAction?: "toggle" | "start" | "stop";
@@ -45,6 +57,10 @@ export interface MidiBinding {
   lastValue?: number;
   /** MPD226 hardware palette index 0–16. */
   padColorIndex?: number;
+  /** Face glyph for transport (and similar) buttons — from a preset list. */
+  uiGlyph?: string;
+  /** Soft-light color when the control is lit (toggle latched / momentary held). */
+  litHue?: "green" | "red" | "amber" | "cyan";
 }
 
 export interface BankSlot {

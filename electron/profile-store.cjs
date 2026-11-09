@@ -27,10 +27,26 @@ function normalizeBinding(raw, fallback) {
     raw?.pressMode === "toggle" || raw?.pressMode === "momentary"
       ? raw.pressMode
       : fallback.pressMode || "momentary";
+  const litHueRaw = raw?.litHue ?? fallback.litHue;
+  const litHue =
+    litHueRaw === "green" ||
+    litHueRaw === "red" ||
+    litHueRaw === "amber" ||
+    litHueRaw === "cyan"
+      ? litHueRaw
+      : undefined;
+  const uiGlyph =
+    typeof raw?.uiGlyph === "string" && raw.uiGlyph.trim()
+      ? raw.uiGlyph.trim().slice(0, 4)
+      : typeof fallback.uiGlyph === "string"
+        ? fallback.uiGlyph
+        : undefined;
   return {
     ...fallback,
     ...raw,
     pressMode,
+    uiGlyph,
+    litHue,
     action: {
       ...defaultAction(),
       ...(fallback.action || {}),

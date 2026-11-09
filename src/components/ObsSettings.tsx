@@ -83,7 +83,7 @@ export function ObsSettings({
           </button>
         ) : (
           <>
-            <button type="button" className="slim-icon" disabled={busy} onClick={onRefresh} title="Refresh scenes">
+            <button type="button" className="slim-icon" disabled={busy} onClick={onRefresh} title="Refresh scenes & sources">
               ↻
             </button>
             <button type="button" className="slim-icon" disabled={busy} onClick={onDisconnect} title="Disconnect">

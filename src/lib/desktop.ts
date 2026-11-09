@@ -49,6 +49,7 @@ const browserStub: BphDesktopApi = {
   obsScenes: async () => ({ ok: false, scenes: [] }),
   obsMedia: async () => ({ ok: false, inputs: [] }),
   obsInputs: async () => ({ ok: false, inputs: [] }),
+  obsSceneItems: async () => ({ ok: false, items: [] }),
   midiStatus: async () => ({
     available: false,
     open: false,
